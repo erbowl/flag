@@ -17,13 +17,13 @@ class App extends Component {
     );
   }
 }
-const API_KEY='AIzaSyDhOCyIoQjMiCNcKdinj8cRHX32jMEDBOA';
+const API_KEY='AIzaSyCGTPUcDO_MNFVso0vvSJBqNrHCQeXF41Y';
 const REQUEST_URL='https://maps.googleapis.com/maps/api/geocode/json?address=ADDRESS&key='+API_KEY;
 class DesForm extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {value: '',data:'',address:''};
+        this.state = {value: '',address:'',lat:0,lon:0};
         this.handleChange = this.handleChange.bind(this);
     }
 
@@ -31,7 +31,7 @@ class DesForm extends React.Component {
         this.setState({value: event.target.value});
         if(this.state.value!=''){
             this.fetchData();
-            console.log(this.state.data);
+            console.log(this.state);
         }
     }
 
@@ -39,12 +39,11 @@ class DesForm extends React.Component {
      fetch(REQUEST_URL.replace("ADDRESS",this.state.value))
           .then((response) => response.json())
      .then((responseData) => {
-       this.setState({
-         data: responseData,
-       })
        if(responseData.status=="OK"){
            this.setState({
-               address:responseData.results[0].formatted_address
+               address:responseData.results[0].formatted_address,
+               lat:responseData.results[0].geometry.location.lat,
+               lon:responseData.results[0].geometry.location.lon,
            })
        }
      })
