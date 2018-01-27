@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
 
-
 class App extends Component {
   render() {
     return (
@@ -80,17 +79,19 @@ class Location extends React.Component{
     this.getLocation = this.getLocation.bind(this);
     this.successFunc = this.successFunc.bind(this);
     this.errorFunc = this.errorFunc.bind(this);
+    this.getDirection = this.getDirection.bind(this);
   }
 
   getLocation(){
     if( navigator.geolocation ){
       navigator.geolocation.watchPosition( this.successFunc, this.errorFunc);
+      this.getDirection();
     }else{
       alert( "現在位置を取得できません。" ) ;
     }
   }
   successFunc( position ){
-    this.setState({lat:position.coords.latitude,lon:position.coords.longitude,direction:position.coords.heading})
+    this.setState({lat:position.coords.latitude,lon:position.coords.longitude})
   }
   errorFunc( error ){
   	var errorMessage = {
@@ -101,6 +102,16 @@ class Location extends React.Component{
   	} ;
   	alert( errorMessage[error.code] ) ;
   }
+
+  getDirection(){
+    var that =this
+    window.addEventListener('deviceorientation', function(event){
+      that.setState({direction:event.alpha});
+      console.log(event.alpha);
+    });
+  }
+
+
   render() {
       return (
         <div>
