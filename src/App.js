@@ -76,7 +76,7 @@ class DesForm extends React.Component {
 class Location extends React.Component{
   constructor(props){
     super(props);
-    this.state={lat:0,lon:0};
+    this.state={lat:0,lon:0,direction:0};
     this.getLocation = this.getLocation.bind(this);
     this.successFunc = this.successFunc.bind(this);
     this.errorFunc = this.errorFunc.bind(this);
@@ -90,7 +90,7 @@ class Location extends React.Component{
     }
   }
   successFunc( position ){
-    this.setState({lat:position.coords.latitude,lon:position.coords.longitude})
+    this.setState({lat:position.coords.latitude,lon:position.coords.longitude,direction:position.coords.heading})
   }
   errorFunc( error ){
   	var errorMessage = {
@@ -104,7 +104,7 @@ class Location extends React.Component{
   render() {
       return (
         <div>
-          <p>現在地：{this.state.lat},{this.state.lon}</p>
+          <p>現在地：{this.state.lat},{this.state.lon}方角：{this.state.direction}</p>
           <button onClick={this.getLocation}>現在地を取得</button>
           <Distance
             des_lat={this.props.des_lat}
