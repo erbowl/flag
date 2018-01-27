@@ -108,6 +108,7 @@ class Location extends React.Component{
     window.addEventListener('deviceorientation', function(event){
       that.setState({direction:event.alpha});
       console.log(event.alpha);
+      alert(event.alpha);
     });
   }
 
