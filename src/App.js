@@ -21,20 +21,20 @@ var URL = window.URL || window.webkitURL;
 class Camera extends React.Component{
   constructor(props){
     super(props);
-    this.state={src:"",cam_ids:"",now:1};
+    this.state={src:"",cam_ids:[],now:1};
     this.getVideoSources = this.getVideoSources.bind(this);
     this.getStream = this.getStream.bind(this);
-    this.setState({cam_ids:this.getVideoSources()});
+    this.getVideoSources();
   }
 
   getVideoSources() {
-    var cam_ids=[];
+    var that=this;
     if (!navigator.mediaDevices) {
       console.log("MediaStreamTrack");
       MediaStreamTrack.getSources(function(cams) {
         cams.forEach(function(c, i, a) {
           if (c.kind !== 'video') return;
-          cam_ids.push(c.id);
+          that.setState({cam_ids:that.state.cam_ids.push(c.id)})
         });
       });
     } else {
@@ -42,17 +42,18 @@ class Camera extends React.Component{
         cams.forEach(function(c, i, a) {
           console.log("mediaDevices", c);
           if (c.kind !== 'videoinput') return;
-          cam_ids.push(c.deviceId);
+          that.setState({cam_ids:that.state.cam_ids.push(c.deviceId)})
         });
       });
     }
-    return cam_ids;
   }
 
   getStream(){
     var that=this;
     var cam_ids=this.state.cam_ids;
-    var cam_id=this.state.cam_ids[(this.state.now)%this.state.cam_ids];
+    var cam_id=this.state.cam_ids[(this.state.now)%this.state.cam_ids.length];
+    console.log(cam_ids);
+    console.log((this.state.now)%this.state.cam_ids);
     this.setState({now:this.state.now+1});
 
     navigator.getUserMedia({
