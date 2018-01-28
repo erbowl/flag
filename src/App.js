@@ -21,19 +21,20 @@ var URL = window.URL || window.webkitURL;
 class Camera extends React.Component{
   constructor(props){
     super(props);
-    this.state={src:"",cam_id:""};
+    this.state={src:"",cam_ids:"",now:1};
     this.getVideoSources = this.getVideoSources.bind(this);
     this.getStream = this.getStream.bind(this);
-    this.setState({cam_id:this.getVideoSources()});
+    this.setState({cam_ids:this.getVideoSources()});
   }
 
   getVideoSources() {
+    var cam_ids=[];
     if (!navigator.mediaDevices) {
       console.log("MediaStreamTrack");
       MediaStreamTrack.getSources(function(cams) {
         cams.forEach(function(c, i, a) {
           if (c.kind !== 'video') return;
-          return c.id;
+          cam_ids.push(c.id);
         });
       });
     } else {
@@ -41,15 +42,19 @@ class Camera extends React.Component{
         cams.forEach(function(c, i, a) {
           console.log("mediaDevices", c);
           if (c.kind !== 'videoinput') return;
-          return c.deviceId;
+          cam_ids.push(c.deviceId);
         });
       });
     }
+    return cam_ids;
   }
 
   getStream(){
     var that=this;
-    var cam_id=this.state.cam_id;
+    var cam_ids=this.state.cam_ids;
+    var cam_id=this.state.cam_ids[(this.state.now)%this.state.cam_ids];
+    this.setState({now:this.state.now+1});
+
     navigator.getUserMedia({
         audio: false,
         video: {
@@ -68,7 +73,7 @@ class Camera extends React.Component{
   render() {
       return (
         <div>
-          <button onClick={this.getStream}>カメラを起動</button>
+          <button onClick={this.getStream}>カメラを起動・切り替え</button>
           <video src={this.state.src} autoPlay/>
         </div>
        );
