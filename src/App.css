@@ -26,7 +26,7 @@
   height: 320px;
   position: fixed;
   top: 40%;
-  left: -300px;
+  /* left: 0px; */
   margin: 0px;
   object-fit: cover;
 }

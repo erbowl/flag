@@ -21,10 +21,16 @@ var URL = window.URL || window.webkitURL;
 class Camera extends React.Component{
   constructor(props){
     super(props);
-    this.state={src:"",cam_ids:[],now:1};
+    this.state={src:"",cam_ids:[],now:1,left_value:0};
     this.getVideoSources = this.getVideoSources.bind(this);
     this.getStream = this.getStream.bind(this);
+    this.getLeft = this.getLeft.bind(this);
     this.getVideoSources();
+    this.getLeft(props);
+  }
+
+  componentWillReceiveProps(nextProps){
+    this.getLeft(nextProps);
   }
 
   getVideoSources() {
@@ -71,13 +77,20 @@ class Camera extends React.Component{
         console.error("Error on start video: " + e.code);
     });
   }
+  getLeft(props){
+    const image_width=1280;
+    const width=window.parent.screen.width;
+    const dire_diff=props.diff_dire;
+    this.setState({left_value:-image_width/2+width/2-image_width*dire_diff/360})
+    console.log(-image_width/2+width/2-image_width*dire_diff/360);
+  }
 
   render() {
       return (
         <div>
           <button className="camera-button" onClick={this.getStream}>カメラを起動・切り替え</button>
           <video className="video" src={this.state.src} autoPlay/>
-          <img className="flag" src="flag.png" alt="flag"/>
+          <img className="flag" src="flag.png" alt="flag" style={{left:this.state.left_value}}/>
         </div>
        );
   }
@@ -135,7 +148,6 @@ class DesForm extends React.Component {
                   des_lon={this.state.lon}
                 />
             </form>
-            <Camera/>
           </div>
          );
     }
@@ -190,6 +202,7 @@ class Location extends React.Component{
             des_lon={this.props.des_lon}
             loc_lat={this.state.lat}
             loc_lon={this.state.lon}
+            dire={this.state.direction}
           />
         </div>
       );
@@ -203,17 +216,18 @@ class Distance extends React.Component{
         this.state={length:0,direction:0};
     }
     componentWillReceiveProps(nextProps){
-      this.setState({length:this.geoDirection(nextProps.loc_lat,nextProps.loc_lon,nextProps.des_lat,nextProps.des_lon)});
+      this.setState({direction:(this.geoDirection(nextProps.loc_lat,nextProps.loc_lon,nextProps.des_lat,nextProps.des_lon)-nextProps.dire)%360-180});
     }
 
+    //向くべき方向
     geoDirection(lat1, lng1, lat2, lng2) {
       var Y = Math.cos(lng2 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180 - lat1 * Math.PI / 180);
       var X = Math.cos(lng1 * Math.PI / 180) * Math.sin(lng2 * Math.PI / 180) - Math.sin(lng1 * Math.PI / 180) * Math.cos(lng2 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180 - lat1 * Math.PI / 180);
-      var dirE0 = 180 * Math.atan2(Y, X) / Math.PI; // 東向きが０度の方向
+      var dirE0 = 180 * Math.atan2(Y, X) / Math.PI;
       if (dirE0 < 0) {
-        dirE0 = dirE0 + 360; //0～360 にする。
+        dirE0 = dirE0 + 360;
       }
-      var dirN0 = (dirE0 + 90) % 360; //(dirE0+90)÷360の余りを出力 北向きが０度の方向
+      var dirN0 = (dirE0 + 90) % 360;
       return dirN0;
     }
 
@@ -248,8 +262,9 @@ class Distance extends React.Component{
     render(){
         return(
           <div>
-            <p>{this.state.length}</p>
+            <p>{this.state.direction}</p>
             <p>{this.props.loc_lat},{this.props.loc_lon},{this.props.des_lon},{this.props.des_lat}</p>
+            <Camera diff_dire={this.state.direction}/>
           </div>
 
         );
