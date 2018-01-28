@@ -34,7 +34,7 @@ class Camera extends React.Component{
       MediaStreamTrack.getSources(function(cams) {
         cams.forEach(function(c, i, a) {
           if (c.kind !== 'video') return;
-          that.setState({cam_ids:that.state.cam_ids.push(c.id)})
+          that.setState({cam_ids:that.state.cam_ids.concat(c.id)})
         });
       });
     } else {
@@ -42,7 +42,7 @@ class Camera extends React.Component{
         cams.forEach(function(c, i, a) {
           console.log("mediaDevices", c);
           if (c.kind !== 'videoinput') return;
-          that.setState({cam_ids:that.state.cam_ids.push(c.deviceId)})
+          that.setState({cam_ids:that.state.cam_ids.concat(c.deviceId)});
         });
       });
     }
@@ -53,7 +53,8 @@ class Camera extends React.Component{
     var cam_ids=this.state.cam_ids;
     var cam_id=this.state.cam_ids[(this.state.now)%this.state.cam_ids.length];
     console.log(cam_ids);
-    console.log((this.state.now)%this.state.cam_ids);
+    console.log((this.state.now)%this.state.cam_ids.length);
+    console.log(this.state.now);
     this.setState({now:this.state.now+1});
 
     navigator.getUserMedia({
