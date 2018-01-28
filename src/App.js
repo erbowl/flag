@@ -216,7 +216,7 @@ class Distance extends React.Component{
         this.state={length:0,direction:0};
     }
     componentWillReceiveProps(nextProps){
-      this.setState({direction:(this.geoDirection(nextProps.loc_lat,nextProps.loc_lon,nextProps.des_lat,nextProps.des_lon)-nextProps.dire)%360-180});
+      this.setState({direction:(this.geoDirection(nextProps.loc_lat,nextProps.loc_lon,nextProps.des_lat,nextProps.des_lon)-nextProps.dire+360)%360-180});
     }
 
     //向くべき方向
