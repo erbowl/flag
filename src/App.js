@@ -7,15 +7,75 @@ class App extends Component {
       <div className="App">
         <header>
             <p>FLAG</p>
-            <DesForm/>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <DesForm/>
+        <Camera/>
       </div>
     );
   }
 }
+
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+var URL = window.URL || window.webkitURL;
+
+class Camera extends React.Component{
+  constructor(props){
+    super(props);
+    this.state={src:"",cam_id:""};
+    this.getVideoSources = this.getVideoSources.bind(this);
+    this.getStream = this.getStream.bind(this);
+    this.setState({cam_id:this.getVideoSources()});
+  }
+
+  getVideoSources() {
+    if (!navigator.mediaDevices) {
+      console.log("MediaStreamTrack");
+      MediaStreamTrack.getSources(function(cams) {
+        cams.forEach(function(c, i, a) {
+          if (c.kind !== 'video') return;
+          return c.id;
+        });
+      });
+    } else {
+      navigator.mediaDevices.enumerateDevices().then(function(cams) {
+        cams.forEach(function(c, i, a) {
+          console.log("mediaDevices", c);
+          if (c.kind !== 'videoinput') return;
+          return c.deviceId;
+        });
+      });
+    }
+  }
+
+  getStream(){
+    var that=this;
+    var cam_id=this.state.cam_id;
+    navigator.getUserMedia({
+        audio: false,
+        video: {
+          optional: [
+            { sourceId: cam_id}
+          ]
+        }
+    },function(stream) { // success
+        console.log("Start Video", stream);
+        that.setState({src:URL.createObjectURL(stream)})
+    }, function(e) { // error
+        console.error("Error on start video: " + e.code);
+    });
+  }
+
+  render() {
+      return (
+        <div>
+          <button onClick={this.getStream}>カメラを起動</button>
+          <video src={this.state.src} autoPlay/>
+        </div>
+       );
+  }
+
+}
+
 const API_KEY='AIzaSyCGTPUcDO_MNFVso0vvSJBqNrHCQeXF41Y';
 const REQUEST_URL='https://maps.googleapis.com/maps/api/geocode/json?address=ADDRESS&key='+API_KEY;
 
@@ -107,8 +167,6 @@ class Location extends React.Component{
     var that =this
     window.addEventListener('deviceorientation', function(event){
       that.setState({direction:event.alpha});
-      console.log(event.alpha);
-      alert(event.alpha);
     });
   }
 
