@@ -8,8 +8,8 @@ class App extends Component {
         <header>
             <p>FLAG</p>
         </header>
-        <DesForm/>
-        <Camera/>
+        <DesForm />
+
       </div>
     );
   }
@@ -75,8 +75,9 @@ class Camera extends React.Component{
   render() {
       return (
         <div>
-          <button onClick={this.getStream}>カメラを起動・切り替え</button>
-          <video src={this.state.src} autoPlay/>
+          <button className="camera-button" onClick={this.getStream}>カメラを起動・切り替え</button>
+          <video className="video" src={this.state.src} autoPlay/>
+          <img className="flag" src="flag.png" alt="flag"/>
         </div>
        );
   }
@@ -121,19 +122,20 @@ class DesForm extends React.Component {
 
     render() {
         return (
-          <div>
-            <form onSubmit={this.handleSubmit}>
+          <div >
+            <form className="modal-form" onSubmit={this.handleSubmit}>
                 <label>
                  目的地（Destination）:
                     <input type="text" value={this.state.value} onChange={this.handleChange} />
                 </label>
                 <p>{this.state.address}</p>
                 <p>目的地：{this.state.lat},{this.state.lon}</p>
+                <Location
+                  des_lat={this.state.lat}
+                  des_lon={this.state.lon}
+                />
             </form>
-              <Location
-                des_lat={this.state.lat}
-                des_lon={this.state.lon}
-              />
+            <Camera/>
           </div>
          );
     }
