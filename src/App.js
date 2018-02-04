@@ -5,6 +5,9 @@ import { Nav } from 'react-bootstrap';
 import { NavItem } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 import { Glyphicon } from 'react-bootstrap';
+import { Grid } from 'react-bootstrap';
+import { Row } from 'react-bootstrap';
+import { Col } from 'react-bootstrap';
 
 class App extends Component {
   render() {
@@ -32,7 +35,14 @@ class App extends Component {
           </Navbar.Collapse>
         </Navbar>
         <div id="content">
-          <DesForm />
+          <Grid>
+            <Row className="show-grid">
+              <Col sm={6} smOffset={3}>
+                <DesForm />
+              </Col>
+            </Row>
+          </Grid>
+
         </div>
       </div>
     );
@@ -40,7 +50,6 @@ class App extends Component {
 }
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-var URL = window.URL || window.webkitURL;
 
 class FLAG extends React.Component{
   constructor(props){
