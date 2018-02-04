@@ -16,3 +16,16 @@
   margin-top: 60px;
   padding: 10px;
 }
+
+html{
+  height: 100%;
+}
+body{
+  background: linear-gradient(#05FBFF, #1E00FF);
+}
+p,label{
+  color: white;
+}
+input{
+  width: 100%
+}
