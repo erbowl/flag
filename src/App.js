@@ -1,15 +1,39 @@
 import React, { Component } from 'react';
 import './App.css';
+import { Navbar } from 'react-bootstrap';
+import { Nav } from 'react-bootstrap';
+import { NavItem } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
+import { Glyphicon } from 'react-bootstrap';
 
 class App extends Component {
   render() {
     return (
       <div className="App">
-        <header>
-            <p>FLAG</p>
-        </header>
-        <DesForm />
-
+        <Navbar  inverse collapseOnSelect fixedTop>
+          <Navbar.Header>
+            <Navbar.Brand>
+              <a href="">FLAG</a>
+            </Navbar.Brand>
+            <Navbar.Toggle />
+          </Navbar.Header>
+          <Navbar.Collapse>
+            <Nav pullRight>
+              <NavItem eventKey={1} href="#">
+                利用規約
+              </NavItem>
+              <NavItem eventKey={2} href="#">
+                運営情報
+              </NavItem>
+              <NavItem eventKey={2} href="#">
+                プライバシーポリシー
+              </NavItem>
+            </Nav>
+          </Navbar.Collapse>
+        </Navbar>
+        <div id="content">
+          <DesForm />
+        </div>
       </div>
     );
   }
@@ -18,80 +42,29 @@ class App extends Component {
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 var URL = window.URL || window.webkitURL;
 
-class Camera extends React.Component{
+class FLAG extends React.Component{
   constructor(props){
     super(props);
-    this.state={src:"",cam_ids:[],now:1,left_value:0};
-    this.getVideoSources = this.getVideoSources.bind(this);
-    this.getStream = this.getStream.bind(this);
+    this.state={left_value:0,flag_none:true};
     this.getLeft = this.getLeft.bind(this);
-    this.getVideoSources();
     this.getLeft(props);
   }
 
   componentWillReceiveProps(nextProps){
     this.getLeft(nextProps);
+    this.setState({flag_none:nextProps.display_none});
   }
 
-  getVideoSources() {
-    var that=this;
-    if (!navigator.mediaDevices) {
-      console.log("MediaStreamTrack");
-      MediaStreamTrack.getSources(function(cams) {
-        cams.forEach(function(c, i, a) {
-          if (c.kind !== 'video') return;
-          that.setState({cam_ids:that.state.cam_ids.concat(c.id)})
-        });
-      });
-    } else {
-      navigator.mediaDevices.enumerateDevices().then(function(cams) {
-        cams.forEach(function(c, i, a) {
-          console.log("mediaDevices", c);
-          if (c.kind !== 'videoinput') return;
-          that.setState({cam_ids:that.state.cam_ids.concat(c.deviceId)});
-        });
-      });
-    }
-  }
-
-  getStream(){
-    var that=this;
-    var cam_ids=this.state.cam_ids;
-    var cam_id=this.state.cam_ids[(this.state.now)%this.state.cam_ids.length];
-    console.log(cam_ids);
-    console.log((this.state.now)%this.state.cam_ids.length);
-    console.log(this.state.now);
-    this.setState({now:this.state.now+1});
-
-    navigator.getUserMedia({
-        audio: false,
-        video: {
-          optional: [
-            { sourceId: cam_id}
-          ]
-        }
-    },function(stream) { // success
-        console.log("Start Video", stream);
-        that.setState({src:URL.createObjectURL(stream)})
-    }, function(e) { // error
-        console.error("Error on start video: " + e.code);
-    });
-  }
   getLeft(props){
     const image_width=1280;
     const width=window.parent.screen.width;
-    const dire_diff=props.diff_dire;
-    this.setState({left_value:-image_width/2+width/2-image_width*dire_diff/360})
-    console.log(-image_width/2+width/2-image_width*dire_diff/360);
+    const dire_diff=(props.to_dire-props.now_dire+540)%360-180;
+    this.setState({left_value:-image_width/2+width/2-image_width*dire_diff/360});
   }
 
   render() {
       return (
-        <div>
-          <button className="camera-button" onClick={this.getStream}>カメラを起動・切り替え</button>
-          <video className="video" src={this.state.src} autoPlay/>
-          <img className="flag" src="flag.png" alt="flag" style={{left:this.state.left_value}}/>
-        </div>
+        <img className="flag" src="flag.png" alt="flag" style={{left:this.state.left_value,display:this.state.flag_none ? 'none' : ''}}/>
        );
   }
 
@@ -104,18 +77,37 @@ class DesForm extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {value: '',address:'',lat:0,lon:0};
+        this.state = {
+          value: '',
+          address:'',
+          lat:0,lon:0,
+          direction:0,
+          now_lat:0,now_lon:0,
+          distance:0,
+          to_dire:0,
+          flag_none:true,
+        };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.getLocation = this.getLocation.bind(this);
+        this.successFunc = this.successFunc.bind(this);
+        this.errorFunc = this.errorFunc.bind(this);
+        this.getDirection = this.getDirection.bind(this);
+        this.geoDirection = this.geoDirection.bind(this);
+        this.geoDistance = this.geoDistance.bind(this);
     }
 
     handleChange(event) {
-        this.setState({value: event.target.value});
-    }
+       this.setState({value: event.target.value});
+   }
+
     handleSubmit(event) {
         event.preventDefault();
+        // this.setState({value:event.target.value})
         if(this.state.value!==''){
+            this.setState({flag_none:false});
             this.fetchData();
+            this.getLocation();
         }
     }
 
@@ -129,97 +121,43 @@ class DesForm extends React.Component {
                lat:responseData.results[0].geometry.location.lat,
                lon:responseData.results[0].geometry.location.lng,
            })
+           this.setState({
+             to_dire:this.geoDirection(this.state.lat,this.state.lon,this.state.now_lat,this.state.now_lon),
+             distance:this.geoDistance(this.state.lat,this.state.lon,this.state.now_lat,this.state.now_lon)
+           })
        }
      })
     }
 
-    render() {
-        return (
-          <div >
-            <form className="modal-form" onSubmit={this.handleSubmit}>
-                <label>
-                 目的地（Destination）:
-                    <input type="text" value={this.state.value} onChange={this.handleChange} />
-                </label>
-                <p>{this.state.address}</p>
-                <p>目的地：{this.state.lat},{this.state.lon}</p>
-                <Location
-                  des_lat={this.state.lat}
-                  des_lon={this.state.lon}
-                />
-            </form>
-          </div>
-         );
+    getLocation(){
+      if( navigator.geolocation ){
+        navigator.geolocation.watchPosition( this.successFunc, this.errorFunc);
+        this.getDirection();
+      }else{
+        alert( "ブラウザ対応していないようです。最新版のChromeでお試しください。" ) ;
+      }
     }
-}
-
-class Location extends React.Component{
-  constructor(props){
-    super(props);
-    this.state={lat:0,lon:0,direction:0};
-    this.getLocation = this.getLocation.bind(this);
-    this.successFunc = this.successFunc.bind(this);
-    this.errorFunc = this.errorFunc.bind(this);
-    this.getDirection = this.getDirection.bind(this);
-  }
-
-  getLocation(){
-    if( navigator.geolocation ){
-      navigator.geolocation.watchPosition( this.successFunc, this.errorFunc);
-      this.getDirection();
-    }else{
-      alert( "現在位置を取得できません。" ) ;
-    }
-  }
-  successFunc( position ){
-    this.setState({lat:position.coords.latitude,lon:position.coords.longitude})
-  }
-  errorFunc( error ){
-  	var errorMessage = {
-  		0: "原因不明のエラーが発生しました…。" ,
-  		1: "位置情報の取得が許可されませんでした…。" ,
-  		2: "電波状況などで位置情報が取得できませんでした…。" ,
-  		3: "位置情報の取得に時間がかかり過ぎてタイムアウトしました…。" ,
-  	} ;
-  	alert( errorMessage[error.code] ) ;
-  }
-
-  getDirection(){
-    var that =this
-    window.addEventListener('deviceorientation', function(event){
-      that.setState({direction:event.alpha});
-    });
-  }
-
-
-  render() {
-      return (
-        <div>
-          <p>現在地：{this.state.lat},{this.state.lon}方角：{this.state.direction}</p>
-          <button onClick={this.getLocation}>現在地を取得</button>
-          <Distance
-            des_lat={this.props.des_lat}
-            des_lon={this.props.des_lon}
-            loc_lat={this.state.lat}
-            loc_lon={this.state.lon}
-            dire={this.state.direction}
-          />
-        </div>
-      );
-  }
-}
-
-class Distance extends React.Component{
-    constructor(props){
-        super(props);
-        this.geoDirection = this.geoDirection.bind(this);
-        this.geoDistance = this.geoDistance.bind(this);
-        this.state={length:"",direction:0};
-    }
-    componentWillReceiveProps(nextProps){
+    successFunc( position ){
+      this.setState({now_lat:position.coords.latitude,now_lon:position.coords.longitude});
       this.setState({
-        direction:(this.geoDirection(nextProps.loc_lat,nextProps.loc_lon,nextProps.des_lat,nextProps.des_lon)-nextProps.dire+360)%360-180,
-        length:this.geoDistance(nextProps.loc_lat,nextProps.loc_lon,nextProps.des_lat,nextProps.des_lon)
+        to_dire:this.geoDirection(this.state.lat,this.state.lon,this.state.now_lat,this.state.now_lon),
+        distance:this.geoDistance(this.state.lat,this.state.lon,this.state.now_lat,this.state.now_lon)
+      })
+    }
+    errorFunc( error ){
+      var errorMessage = {
+        0: "原因不明のエラーが発生しました…。" ,
+        1: "位置情報の取得が許可されませんでした…。" ,
+        2: "電波状況などで位置情報が取得できませんでした…。" ,
+        3: "位置情報の取得に時間がかかり過ぎてタイムアウトしました…。" ,
+      } ;
+      alert( errorMessage[error.code] ) ;
+    }
+
+    getDirection(){
+      var that =this
+      window.addEventListener('deviceorientation', function(event){
+        that.setState({direction:event.alpha});
       });
     }
 
@@ -234,7 +172,7 @@ class Distance extends React.Component{
       var dirN0 = (dirE0 + 90) % 360;
       return dirN0;
     }
-
+    //目的地までの距離
     geoDistance(lat1, lng1, lat2, lng2) {
       var precision =3;
       var distance = 0;
@@ -263,16 +201,26 @@ class Distance extends React.Component{
       return distance;
     }
 
-    render(){
-        return(
-          <div>
-            <p>{this.state.direction}</p>
-            <p>{this.state.length}m</p>
-            <p>{this.props.loc_lat},{this.props.loc_lon},{this.props.des_lon},{this.props.des_lat}</p>
-            <Camera diff_dire={this.state.direction}/>
-          </div>
 
-        );
+
+    render() {
+        return (
+          <div >
+            <form className="modal-form" onSubmit={this.handleSubmit}>
+                <label>
+                 目的地（Destination）:
+                 <input type="text" value={this.state.value} onChange={this.handleChange} />
+                </label>
+                <Button bsStyle="primary" bsSize="large" type="submit" block>
+                  目的地までの方角を示す <Glyphicon glyph="flag" />
+                </Button>
+                <p>目的地の住所：{this.state.address}</p>
+                <p>目的地までの距離：{this.state.distance}m</p>
+                <p>目的地への方角：{((this.state.direction-this.state.to_dire+540)%360-180).toFixed(1)}°</p>
+                <FLAG to_dire={this.state.to_dire} now_dire={this.state.direction} display_none={this.state.flag_none}/>
+            </form>
+          </div>
+         );
     }
 }
 
