@@ -9,7 +9,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Navbar inverse collapseOnSelect fixedTop>
+        <Navbar  inverse collapseOnSelect fixedTop>
           <Navbar.Header>
             <Navbar.Brand>
               <a href="">FLAG</a>
@@ -27,12 +27,9 @@ class App extends Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-        <header>
-
-
-        </header>
-        <DesForm />
-
+        <div id="content">
+          <DesForm />
+        </div>
       </div>
     );
   }
@@ -41,14 +38,11 @@ class App extends Component {
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 var URL = window.URL || window.webkitURL;
 
-class Camera extends React.Component{
+class FLAG extends React.Component{
   constructor(props){
     super(props);
-    this.state={src:"",cam_ids:[],now:1,left_value:0};
-    this.getVideoSources = this.getVideoSources.bind(this);
-    this.getStream = this.getStream.bind(this);
+    this.state={left_value:0};
     this.getLeft = this.getLeft.bind(this);
-    this.getVideoSources();
     this.getLeft(props);
   }
 
@@ -56,65 +50,16 @@ class Camera extends React.Component{
     this.getLeft(nextProps);
   }
 
-  getVideoSources() {
-    var that=this;
-    if (!navigator.mediaDevices) {
-      console.log("MediaStreamTrack");
-      MediaStreamTrack.getSources(function(cams) {
-        cams.forEach(function(c, i, a) {
-          if (c.kind !== 'video') return;
-          that.setState({cam_ids:that.state.cam_ids.concat(c.id)})
-        });
-      });
-    } else {
-      navigator.mediaDevices.enumerateDevices().then(function(cams) {
-        cams.forEach(function(c, i, a) {
-          console.log("mediaDevices", c);
-          if (c.kind !== 'videoinput') return;
-          that.setState({cam_ids:that.state.cam_ids.concat(c.deviceId)});
-        });
-      });
-    }
-  }
-
-  getStream(){
-    var that=this;
-    var cam_ids=this.state.cam_ids;
-    var cam_id=this.state.cam_ids[(this.state.now)%this.state.cam_ids.length];
-    console.log(cam_ids);
-    console.log((this.state.now)%this.state.cam_ids.length);
-    console.log(this.state.now);
-    this.setState({now:this.state.now+1});
-
-    navigator.getUserMedia({
-        audio: false,
-        video: {
-          optional: [
-            { sourceId: cam_id}
-          ]
-        }
-    },function(stream) { // success
-        console.log("Start Video", stream);
-        that.setState({src:URL.createObjectURL(stream)})
-    }, function(e) { // error
-        console.error("Error on start video: " + e.code);
-    });
-  }
   getLeft(props){
     const image_width=1280;
     const width=window.parent.screen.width;
-    const dire_diff=props.diff_dire;
-    this.setState({left_value:-image_width/2+width/2-image_width*dire_diff/360})
-    console.log(-image_width/2+width/2-image_width*dire_diff/360);
+    const dire_diff=props.diff_dire
+    // this.setState({left_value:-image_width/2+width/2-image_width*dire_diff/360})
   }
 
   render() {
       return (
-        <div>
-          <button className="camera-button" onClick={this.getStream}>カメラを起動・切り替え</button>
-          <video className="video" src={this.state.src} autoPlay/>
-          <img className="flag" src="flag.png" alt="flag" style={{left:this.state.left_value}}/>
-        </div>
+        <img className="flag" src="flag.png" alt="flag" style={{left:this.state.left_value}}/>
        );
   }
 
@@ -133,10 +78,12 @@ class DesForm extends React.Component {
     }
 
     handleChange(event) {
-        this.setState({value: event.target.value});
-    }
+       this.setState({value: event.target.value});
+   }
+
     handleSubmit(event) {
         event.preventDefault();
+        // this.setState({value:event.target.value})
         if(this.state.value!==''){
             this.fetchData();
         }
@@ -155,6 +102,8 @@ class DesForm extends React.Component {
        }
      })
     }
+
+
 
     render() {
         return (
@@ -292,7 +241,7 @@ class Distance extends React.Component{
             <p>{this.state.direction}</p>
             <p>{this.state.length}m</p>
             <p>{this.props.loc_lat},{this.props.loc_lon},{this.props.des_lon},{this.props.des_lat}</p>
-            <Camera diff_dire={this.state.direction}/>
+            <FLAG diff_dire={this.state.direction}/>
           </div>
 
         );
